@@ -93,6 +93,38 @@ curl http://127.0.0.1:8081/api/health
 # {"service":"praktika","status":"ok"}
 ```
 
+## Docker
+
+Проект собирается в образ multi-stage сборкой на официальном образе
+`drogonframework/drogon` (в нём уже есть фреймворк и тулчейн).
+
+```bash
+# сборка и запуск в фоне
+docker compose up -d --build
+
+# логи / статус / остановка
+docker logs -f praktika
+docker ps
+docker compose down
+
+# либо вручную
+docker build -t praktika:latest .
+docker run --rm -t -p 8082:8081 praktika:latest
+```
+
+Сервис будет доступен на `http://127.0.0.1:8082/api/health`.
+
+**Про порты:** внутри контейнера сервис слушает `8081`, а наружу публикуется
+`8082` (`8082:8081` в compose) — на хосте `8080`/`8081` часто заняты (EDB PEM,
+другие контейнеры). Свободный хостовый порт можно поменять в `docker-compose.yml`.
+
+В контейнере настроен `HEALTHCHECK` (статус `healthy` виден в `docker ps`).
+Логи Drogon выводятся в stdout; для их видимости в `docker logs` контейнеру
+выделяется псевдо-TTY (`tty: true`), иначе вывод буферизуется.
+
+> Требуется запущенный движок Docker (Docker Desktop). Первая сборка
+> скачивает базовый образ Drogon (~2 ГБ) — это может занять время.
+
 ## Добавление нового роута
 
 1. Создайте контроллер в `controllers/`, унаследовав

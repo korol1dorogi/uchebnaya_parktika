@@ -14,7 +14,7 @@
         "load_dynamic_views": false
     },
     "log": {
-        "log_path": "./",
+        "log_path": "",
         "logfile_base_name": "praktika",
         "log_size_limit": 100000000,
         "log_level": "DEBUG"

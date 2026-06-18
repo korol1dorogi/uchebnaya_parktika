@@ -1,0 +1,12 @@
+services:
+  praktika:
+    build: .
+    image: praktika:latest
+    container_name: praktika
+    # псевдо-TTY -> stdout построчный, логи Drogon видны в `docker logs`
+    tty: true
+    # На хосте порт 8081 бывает занят (EDB PEM, другие контейнеры),
+    # поэтому наружу публикуем 8082, внутри контейнера сервис на 8081.
+    ports:
+      - "8082:8081"
+    restart: unless-stopped

@@ -1,0 +1,20 @@
+# Артефакты сборки
+build/
+cmake-build-*/
+out/
+
+# Git
+.git/
+.gitignore
+
+# Логи Drogon
+*.log
+praktika.*.log
+
+# IDE
+.vscode/
+.idea/
+*.user
+
+# Документация (не нужна в образе)
+README.md
