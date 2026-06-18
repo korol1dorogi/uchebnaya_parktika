@@ -9,7 +9,8 @@
     "app": {
         "number_of_threads": 1,
         "document_root": "./",
-        "enable_session": false,
+        "enable_session": true,
+        "session_timeout": 86400,
         "max_connections": 100000,
         "load_dynamic_views": false
     },

@@ -1,12 +1,61 @@
 services:
+  # ---- PostgreSQL ----
+  db:
+    image: postgres:16-alpine
+    container_name: praktika-db
+    environment:
+      POSTGRES_DB: praktika
+      POSTGRES_USER: praktika
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required (см. .env)}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U praktika -d praktika"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # ---- Python-микросервис хэширования ----
+  hasher:
+    build: ./hasher
+    container_name: praktika-hasher
+    environment:
+      - PORT=5005
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5005/health')\""]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ---- Основной сервис на Drogon ----
   praktika:
     build: .
     image: praktika:latest
     container_name: praktika
     # псевдо-TTY -> stdout построчный, логи Drogon видны в `docker logs`
     tty: true
+    depends_on:
+      db:
+        condition: service_healthy
+      hasher:
+        condition: service_started
     # На хосте порт 8081 бывает занят (EDB PEM, другие контейнеры),
     # поэтому наружу публикуем 8082, внутри контейнера сервис на 8081.
     ports:
       - "8082:8081"
+    # Секреты и адреса сервисов берутся из .env (compose читает его автоматически).
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY:?GROQ_API_KEY is required (см. .env)}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=praktika
+      - DB_USER=praktika
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required (см. .env)}
+      - HASHER_URL=http://hasher:5005
     restart: unless-stopped
+
+volumes:
+  db_data:

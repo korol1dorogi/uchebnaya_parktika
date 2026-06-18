@@ -33,3 +33,12 @@ praktika.*.log
 
 # vcpkg local install tree
 vcpkg_installed/
+
+# Секреты (токены и т.п.) — НЕ коммитить
+.env
+.env.*
+!.env.example
+
+# Python (микросервис hasher)
+__pycache__/
+*.pyc

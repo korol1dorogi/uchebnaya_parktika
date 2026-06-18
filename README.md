@@ -86,11 +86,71 @@ cd build
 > EDB PEM (`httpd.exe`). Если 8081 тоже окажется занят — поменяйте `port`
 > в `config.json`. Проверить занятость: `netstat -ano | grep :8081`.
 
+## Эндпоинты
+
+| Метод  | Путь                        | Описание                                              |
+|--------|-----------------------------|-------------------------------------------------------|
+| GET    | `/api/health`               | проверка живости: `{"service":"praktika","status":"ok"}` |
+| GET    | `/api/happy`                | `Hello, World!` + позитивное хокку от Groq (сохраняется в БД) |
+| POST   | `/api/register`             | регистрация `{login, password}` (автологин)           |
+| POST   | `/api/login`                | вход `{login, password}`                              |
+| POST   | `/api/logout`               | выход                                                 |
+| GET    | `/api/me`                   | текущий пользователь / статус сессии                  |
+| GET    | `/api/haikus`               | все хокку (вкл. анонимные и чужие)                    |
+| GET    | `/api/haikus/my`            | хокку текущего пользователя (нужен вход)              |
+| PUT    | `/api/haikus/{id}/comment`  | прокомментировать своё хокку                          |
+| DELETE | `/api/haikus/{id}`          | удалить своё хокку                                    |
+
+Страницы (HTML): `/` (и `/happy`) — главная (генерация + «мои хокку» + «все
+хокку»), `/login` — вход, `/register` — регистрация.
+
+### Архитектура (docker compose)
+
+Три сервиса в одной сети:
+
+- **praktika** — основной сервис на Drogon (порт 8081 → хост 8082);
+- **hasher** — Python/Flask микросервис хэширования паролей (не классический
+  хэш, своя `simple_kdf`; формат `salt:iterations:hash`);
+- **db** — PostgreSQL 16 (таблицы `users`, `haikus`, схема в `db/init.sql`).
+
+Авторизация — серверные сессии Drogon (cookie `SESSION`). Пароли praktika не
+считает сам, а отправляет в `hasher` (`POST /hash` при регистрации,
+`POST /verify` при входе).
+
+### `/api/happy` и ключ Groq
+
+Хокку генерирует [Groq](https://console.groq.com) (OpenAI-совместимый API,
+модель `llama-3.1-8b-instant`). Системный промт: *«Сгенерируй позитивное
+хокку желающее пользователю хорошего дня»*. Чтобы хокку не повторялись,
+при совпадении с предыдущим ответом делается повторный запрос с «солью» —
+текущим временем.
+
+Секреты читаются из переменных окружения и в репозиторий не коммитятся.
+Положите их в файл `.env` (см. `.env.example`):
+
+```bash
+cp .env.example .env
+# GROQ_API_KEY=gsk_...          ключ Groq
+# DB_PASSWORD=...               пароль пользователя БД praktika
+```
+
+`docker compose` подхватывает `.env` автоматически. Для локального запуска
+без Docker нужно отдельно поднять Postgres и микросервис `hasher` и задать
+переменные `GROQ_API_KEY`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
+`DB_PASSWORD`, `HASHER_URL` (см. `docker-compose.yml`).
+
+> Локальная сборка Drogon на этой машине собрана **без** PostgreSQL, поэтому
+> функции БД работают только в Docker (там образ Drogon с libpq).
+
 ## Проверка
 
 ```bash
-curl http://127.0.0.1:8081/api/health
+curl http://127.0.0.1:8081/api/health   # локально
+curl http://127.0.0.1:8082/api/health   # в Docker
 # {"service":"praktika","status":"ok"}
+
+curl http://127.0.0.1:8082/api/happy
+# {"message":"Hello, World!","haiku":"..."}
 ```
 
 ## Docker
