@@ -42,3 +42,6 @@ vcpkg_installed/
 # Python (микросервис hasher)
 __pycache__/
 *.pyc
+
+# k8s: реальный секрет не коммитим (только secret.example.yaml)
+k8s/secret.yaml

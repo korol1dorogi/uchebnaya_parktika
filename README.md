@@ -186,6 +186,13 @@ docker run --rm -t -p 8082:8081 praktika:latest
 > Требуется запущенный движок Docker (Docker Desktop). Первая сборка
 > скачивает базовый образ Drogon (~2 ГБ) — это может занять время.
 
+## Kubernetes (minikube)
+
+Манифесты для запуска того же стека в кластере — в каталоге [k8s/](k8s/)
+(Deployment'ы praktika/hasher, Postgres с PVC, ConfigMap/Secret, NodePort).
+Код менять не нужно: Service-ы названы `db` и `hasher`, как в compose.
+Инструкция по запуску — [k8s/README.md](k8s/README.md).
+
 ## Добавление нового роута
 
 1. Создайте контроллер в `controllers/`, унаследовав

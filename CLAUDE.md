@@ -55,6 +55,9 @@ docker compose down               # стоп
 - `models/User.h`, `models/Haiku.h` — простые структуры-модели.
 - `hasher/` — Python-микросервис (`app.py`, `Dockerfile`, `requirements.txt`).
 - `db/init.sql` — схема БД.
+- `k8s/` — манифесты Kubernetes (minikube): Deployment'ы praktika/hasher,
+  Postgres+PVC, ConfigMap/Secret, NodePort. Service-ы названы `db`/`hasher`
+  (как в compose), поэтому код не меняется. См. `k8s/README.md`.
 
 ## Доступ к БД (Drogon, C++20 корутины)
 

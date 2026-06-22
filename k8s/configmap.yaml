@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: praktika-config
+  namespace: praktika
+data:
+  # Для praktika (читается в main.cc и контроллерах)
+  DB_HOST: "db"
+  DB_PORT: "5432"
+  DB_NAME: "praktika"
+  DB_USER: "praktika"
+  HASHER_URL: "http://hasher:5005"
+  # Для контейнера postgres
+  POSTGRES_DB: "praktika"
+  POSTGRES_USER: "praktika"

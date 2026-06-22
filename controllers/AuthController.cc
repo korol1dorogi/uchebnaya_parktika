@@ -74,7 +74,7 @@ Task<> AuthController::registerUser(
         co_return;
     }
 
-    // 2. Сохраняем пользователя в БД.
+    // Сохраняем пользователя в БД.
     try
     {
         auto db = app().getDbClient();

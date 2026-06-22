@@ -22,7 +22,6 @@ int main()
     // а не как \uXXXX.
     drogon::app().setUnicodeEscapingInJson(false);
 
-    // Подключение к Postgres из переменных окружения (пароль не в config.json).
     const std::string dbHost = envOr("DB_HOST", "");
     if (!dbHost.empty())
     {

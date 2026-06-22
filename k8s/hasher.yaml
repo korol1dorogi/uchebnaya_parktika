@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hasher
+  namespace: praktika
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hasher
+  template:
+    metadata:
+      labels:
+        app: hasher
+    spec:
+      containers:
+        - name: hasher
+          image: praktika-hasher:latest
+          imagePullPolicy: IfNotPresent   # образ загружен в minikube, не тянуть из реестра
+          ports:
+            - containerPort: 5005
+          env:
+            - name: PORT
+              value: "5005"
+          readinessProbe:
+            httpGet: { path: /health, port: 5005 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 5005 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hasher
+  namespace: praktika
+spec:
+  selector:
+    app: hasher
+  ports:
+    - port: 5005
+      targetPort: 5005
