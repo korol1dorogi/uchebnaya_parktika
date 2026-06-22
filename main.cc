@@ -1,16 +1,8 @@
 #include <drogon/drogon.h>
 
-#include <cstdlib>
 #include <string>
 
-namespace
-{
-std::string envOr(const char *name, const std::string &def)
-{
-    const char *v = std::getenv(name);
-    return (v != nullptr && *v != '\0') ? std::string(v) : def;
-}
-}  // namespace
+#include "Env.h"
 
 int main()
 {
@@ -22,16 +14,16 @@ int main()
     // а не как \uXXXX.
     drogon::app().setUnicodeEscapingInJson(false);
 
-    const std::string dbHost = envOr("DB_HOST", "");
+    const std::string dbHost = util::envOr("DB_HOST", "");
     if (!dbHost.empty())
     {
         drogon::app().createDbClient(
             "postgresql",
             dbHost,
-            static_cast<unsigned short>(std::stoi(envOr("DB_PORT", "5432"))),
-            envOr("DB_NAME", "praktika"),
-            envOr("DB_USER", "praktika"),
-            envOr("DB_PASSWORD", ""),
+            static_cast<unsigned short>(std::stoi(util::envOr("DB_PORT", "5432"))),
+            util::envOr("DB_NAME", "praktika"),
+            util::envOr("DB_USER", "praktika"),
+            util::envOr("DB_PASSWORD", ""),
             1);  // число соединений
         LOG_INFO << "DB client configured for host " << dbHost;
     }

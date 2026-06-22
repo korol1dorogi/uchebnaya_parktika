@@ -2,18 +2,15 @@
 
 #include <drogon/HttpController.h>
 
-#include <cstdlib>
 #include <string>
+
+#include "Env.h"
 
 // Небольшие общие помощники для контроллеров.
 namespace helpers
 {
-// Значение переменной окружения или дефолт.
-inline std::string envOr(const char *name, const std::string &def)
-{
-    const char *v = std::getenv(name);
-    return (v != nullptr && *v != '\0') ? std::string(v) : def;
-}
+// envOr вынесен в utils/Env.h; реэкспортируем для вызовов через helpers::.
+using util::envOr;
 
 // UUID текущего пользователя из сессии ("" если аноним / не вошёл).
 inline std::string currentUserUuid(const drogon::HttpRequestPtr &req)

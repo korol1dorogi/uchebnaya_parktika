@@ -186,6 +186,22 @@ docker run --rm -t -p 8082:8081 praktika:latest
 > Требуется запущенный движок Docker (Docker Desktop). Первая сборка
 > скачивает базовый образ Drogon (~2 ГБ) — это может занять время.
 
+## Тесты и CI
+
+- **Python (hasher)** — `pytest`:
+  ```bash
+  pip install -r hasher/requirements-dev.txt
+  pytest hasher/tests -v
+  ```
+- **C++ юнит-тесты** (GoogleTest, чистые утилиты из `utils/`, без Drogon):
+  ```bash
+  cmake -S tests -B build-tests && cmake --build build-tests
+  ctest --test-dir build-tests --output-on-failure
+  ```
+- **CI** — GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml))
+  на каждый push/PR: pytest hasher, C++ ctest и интеграционный smoke стека
+  через `docker compose`.
+
 ## Kubernetes (minikube)
 
 Манифесты для запуска того же стека в кластере — в каталоге [k8s/](k8s/)

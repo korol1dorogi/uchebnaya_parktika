@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  hasher-tests:
+    name: Python-тесты (hasher)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Установить зависимости
+        run: pip install -r hasher/requirements-dev.txt
+      - name: pytest
+        run: pytest hasher/tests -v
+
+  cpp-tests:
+    name: C++ юнит-тесты
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Установить тулчейн
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build
+      - name: Configure
+        run: cmake -S tests -B build-tests -G Ninja
+      - name: Build
+        run: cmake --build build-tests
+      - name: ctest
+        run: ctest --test-dir build-tests --output-on-failure
+
+  integration:
+    name: Интеграционный smoke (docker compose)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Сгенерировать .env (фиктивные секреты для CI)
+        run: |
+          echo "GROQ_API_KEY=ci_dummy_key" > .env
+          echo "DB_PASSWORD=ci_pass" >> .env
+      - name: Сборка и запуск стека
+        run: docker compose up -d --build
+      - name: Дождаться готовности praktika
+        run: |
+          for i in $(seq 1 40); do
+            s=$(docker inspect --format '{{.State.Health.Status}}' praktika 2>/dev/null || echo none)
+            echo "praktika health: $s"
+            [ "$s" = "healthy" ] && exit 0
+            sleep 5
+          done
+          echo "praktika не стал healthy"; docker compose logs; exit 1
+      - name: Smoke-тесты API
+        run: |
+          set -e
+          test "$(curl -fsS http://127.0.0.1:8082/api/hello)" = "Hello, World!"
+          curl -fsS http://127.0.0.1:8082/api/health
+          # register + login проходят без Groq (только hasher + postgres)
+          curl -fsS -X POST http://127.0.0.1:8082/api/register \
+            -H 'Content-Type: application/json' \
+            -d '{"login":"ci_user","password":"pass123"}'
+          curl -fsS -X POST http://127.0.0.1:8082/api/login \
+            -H 'Content-Type: application/json' \
+            -d '{"login":"ci_user","password":"pass123"}'
+          echo "smoke ok"
+      - name: Логи при ошибке
+        if: failure()
+        run: docker compose logs
+      - name: Остановить стек
+        if: always()
+        run: docker compose down -v

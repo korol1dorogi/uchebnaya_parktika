@@ -1,6 +1,7 @@
 #include "AuthController.h"
 
 #include "Helpers.h"
+#include "Validation.h"
 
 #include <drogon/HttpClient.h>
 #include <drogon/orm/DbClient.h>
@@ -45,9 +46,15 @@ Task<> AuthController::registerUser(
     }
     const std::string login = (*json)["login"].asString();
     const std::string password = (*json)["password"].asString();
-    if (login.empty() || password.empty())
+    if (!util::isValidLogin(login))
     {
-        callback(jsonError(k400BadRequest, "login и password не должны быть пустыми"));
+        callback(jsonError(k400BadRequest,
+                           "Логин: 3-32 символа, латиница/цифры/подчёркивание"));
+        co_return;
+    }
+    if (!util::isValidPassword(password))
+    {
+        callback(jsonError(k400BadRequest, "Пароль: от 4 до 128 символов"));
         co_return;
     }
 
