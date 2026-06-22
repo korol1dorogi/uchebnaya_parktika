@@ -29,6 +29,14 @@ spec:
           tty: true                 # построчный stdout -> логи видны в kubectl logs
           ports:
             - containerPort: 8081
+          # requests обязательны для HPA (он считает % загрузки от request).
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
           envFrom:
             - configMapRef:
                 name: praktika-config
