@@ -42,6 +42,7 @@ docker compose down               # стоп
   (`DB_HOST/PORT/NAME/USER/PASSWORD` — пароль НЕ в config.json).
 - `config.json` — листенер 8081, логи в stdout (`log_path:""`), сессии вкл.
 - `controllers/` (подхватываются `aux_source_directory` автоматически):
+  - `HelloController` — `GET /api/hello` → `Hello, World!` (индивидуальный вариант №1).
   - `ApiController` — `GET /api/health`.
   - `HappyController` — `GET /api/happy`: хокку от Groq + автосейв в БД
     (на пользователя из сессии или анонимно). Корутина.

@@ -1,13 +1,10 @@
--- Схема БД praktika. Выполняется автоматически при первом старте контейнера
--- postgres (монтируется в /docker-entrypoint-initdb.d).
--- gen_random_uuid() доступна в ядре PostgreSQL 13+.
 
 -- Пользователи
 CREATE TABLE IF NOT EXISTS users (
     uuid     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     login    TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,   -- хранимая строка вида salt_hex:iterations:hash_hex
-    salt     TEXT NOT NULL    -- соль отдельным полем (по ТЗ)
+    password TEXT NOT NULL,
+    salt     TEXT NOT NULL
 );
 
 -- Хокку
